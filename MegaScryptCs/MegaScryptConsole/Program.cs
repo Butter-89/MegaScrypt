@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using MegaScrypt;
 
-namespace MegaScryptConsole
+namespace MegaScrypt
 {
     class Program
     {
