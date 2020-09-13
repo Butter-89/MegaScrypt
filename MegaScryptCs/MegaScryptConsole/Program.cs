@@ -6,9 +6,27 @@ namespace MegaScrypt
 {
     class Program
     {
+        static object Print(List<object> parameters)
+        {
+            foreach(object o in parameters)
+            {
+                Console.WriteLine(o.ToString());
+            }
+            return null;
+        }
+
+        static object Abs(List<object> parameters)
+        {
+            int i = (int)parameters[0];
+            return Math.Abs(i);
+        }
+
         static void Main(string[] args)
         {
             Machine machine = new Machine();
+            machine.Declare(Print);
+            machine.Declare(Abs, new string[] { "i" });
+
             string script = "";
             string line;
             while(true)
@@ -26,7 +44,7 @@ namespace MegaScrypt
                     try
                     {
                         machine.Execute(script);
-                        PrintVariables(machine);
+                        //PrintVariables(machine);
                     }
                     catch (Exception ex)
                     {

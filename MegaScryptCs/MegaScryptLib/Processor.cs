@@ -385,13 +385,35 @@ namespace MegaScrypt
         public override object VisitInvocation([NotNull] MegaScryptParser.InvocationContext context)
         {
             object obj = GetValue(context.Id());
+            IFunction function = obj as IFunction;
+            if(function == null)
+            {
+                throw new Exception("Invalid function call!");
+            }
 
-            return base.VisitInvocation(context);
+            List<object> parameters;
+            if (context.paramList() != null)
+            {
+                parameters = context.paramList().Accept(this) as List<object>;
+            }
+            else
+                parameters = new List<object>();
+
+            object ret = function.Invoke(parameters);
+            return ret;
         }
 
         public override object VisitParamList([NotNull] MegaScryptParser.ParamListContext context)
         {
-            return base.VisitParamList(context);
+            List<object> parameters = new List<object>();
+            MegaScryptParser.ExpressionContext[] exprs = context.expression();
+            foreach(MegaScryptParser.ExpressionContext expr in exprs)
+            {
+                object result = expr.Accept(this);
+                parameters.Add(result);
+            }
+
+            return parameters;
         }
 
 

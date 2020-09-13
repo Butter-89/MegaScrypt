@@ -4,7 +4,7 @@ using System.Text;
 
 namespace MegaScrypt
 {
-    public interface IFunction
+    interface IFunction
     {
         string Name { get; }
 

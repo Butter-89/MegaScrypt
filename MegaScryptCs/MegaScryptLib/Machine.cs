@@ -40,5 +40,16 @@ namespace MegaScrypt
             object result = root.Accept(processor);
             return result;
         }
+
+        public void Declare(NativeFunction funtion)
+        {
+            target.Declare(funtion.Name, funtion);
+        }
+
+        public void Declare(NativeFunction.Callback callback, IEnumerable<string> parameterNames = null)
+        {
+            NativeFunction function = new NativeFunction(callback, parameterNames);
+            target.Declare(function.Name, function);
+        }
     }
 }

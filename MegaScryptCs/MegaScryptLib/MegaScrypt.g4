@@ -25,7 +25,7 @@ increment:		Id '++' | '++' Id;
 decrement:		Id '--' | '--' Id;
 
 expression:
-	Number | Id | 'true' | 'false' | Null | String | invocation
+	Number | Id | 'true' | 'false' | Null | String | invocation | 
 	'(' expression ')' |
 	'-' expression	|
 	'!' expression	|
