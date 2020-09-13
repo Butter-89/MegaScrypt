@@ -56,6 +56,12 @@ public interface IMegaScryptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitAssignment([NotNull] MegaScryptParser.AssignmentContext context);
 	/// <summary>
+	/// Visit a parse tree produced by <see cref="MegaScryptParser.funcDeclaration"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitFuncDeclaration([NotNull] MegaScryptParser.FuncDeclarationContext context);
+	/// <summary>
 	/// Visit a parse tree produced by <see cref="MegaScryptParser.invocation"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
@@ -67,6 +73,12 @@ public interface IMegaScryptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitParamList([NotNull] MegaScryptParser.ParamListContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="MegaScryptParser.varList"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitVarList([NotNull] MegaScryptParser.VarListContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="MegaScryptParser.instantiation"/>.
 	/// </summary>
@@ -91,6 +103,12 @@ public interface IMegaScryptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitCompoundIdentifier([NotNull] MegaScryptParser.CompoundIdentifierContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="MegaScryptParser.returnStmt"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitReturnStmt([NotNull] MegaScryptParser.ReturnStmtContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="MegaScryptParser.block"/>.
 	/// </summary>

@@ -4,17 +4,20 @@ grammar MegaScrypt;
 program: (statement | block)* ;
 
 statement:
-	(declaration | assignment | increment | decrement | instantiation | invocation) ';' | ifStmt 
+	(declaration | assignment | increment | decrement | instantiation | invocation | returnStmt) ';' | ifStmt 
 ;
 
 declaration:	'var' Id ('=' (expression | compoundIdentifier))?;
 assignment:		Id ('=' | '+=' | '-=' | '*=' | '/=') (compoundIdentifier | expression) ;
+funcDeclaration:	'function' '(' varList? ')' '{' statement* '}' ;
 invocation:		Id '(' paramList? ')' ;
 paramList:		expression (',' expression)* ;
+varList:		'var' Id (',' 'var' Id)* ;
 instantiation:	'var' Id '{' keyValuePairs '}' ;
 keyValuePairs:	keyValuePair (',' keyValuePair)*;
 keyValuePair:	Id ':' expression ;
 compoundIdentifier:	Id ('.' Id)* ;
+returnStmt:		'return' expression? ;
 
 
 block:		'{' statement* '}' | statement;
@@ -25,7 +28,7 @@ increment:		Id '++' | '++' Id;
 decrement:		Id '--' | '--' Id;
 
 expression:
-	Number | Id | 'true' | 'false' | Null | String | invocation | 
+	Number | Id | 'true' | 'false' | Null | String | invocation | funcDeclaration |
 	'(' expression ')' |
 	'-' expression	|
 	'!' expression	|
