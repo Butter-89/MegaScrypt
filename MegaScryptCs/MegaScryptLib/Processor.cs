@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.Design.Serialization;
 using System.Diagnostics.SymbolStore;
+using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
 using System.Text;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
@@ -382,6 +384,54 @@ namespace MegaScrypt
 
         #region Functions
 
+        public override object VisitStatement([NotNull] MegaScryptParser.StatementContext context)
+        {
+            if (returned)
+                return lastReturnedValue;
+            return base.VisitStatement(context);
+        }
+
+        public override object VisitFuncDeclaration([NotNull] MegaScryptParser.FuncDeclarationContext context)
+        {
+            ScriptFunction function = new ScriptFunction(this, Invoke, context);
+            return function;
+        }
+
+        public object Invoke(ScriptFunction function, List<object> parameters)
+        {
+            // Scope
+            Object prevTarget = target;
+            target = new Object(prevTarget);
+
+            // Declare variables
+            if(parameters != null)
+            {
+                if (function.ParameterNames != null && function.ParameterNames.Count != parameters.Count)
+                    throw new InvalidOperationException($"Function {function.Name} expected {function.ParameterNames.Count} parameters but received {parameters.Count}.");
+
+                for(int i = 0; i < function.ParameterNames.Count; i++)
+                {
+                    target.Declare(function.ParameterNames[i], parameters[i]);
+                }
+            }
+
+            lastReturnedValue = null;
+            returned = false;
+
+            // execute body
+            base.VisitFuncDeclaration(function.DeclarationContext);
+
+            // Pop scope
+            target = prevTarget;
+
+            //return value
+            object ret = lastReturnedValue;
+            lastReturnedValue = null;
+            returned = false;
+
+            return ret;
+        }
+
         public override object VisitInvocation([NotNull] MegaScryptParser.InvocationContext context)
         {
             object obj = GetValue(context.Id());
@@ -416,7 +466,32 @@ namespace MegaScrypt
             return parameters;
         }
 
+        public override object VisitVarList([NotNull] MegaScryptParser.VarListContext context)
+        {
+            List<string> varList = new List<string>();
 
+            ITerminalNode[] ids = context.Id();
+            foreach(ITerminalNode id in ids)
+            {
+                string result = id.Accept(this) as string;
+                varList.Add(result);
+            }
+
+            return varList;
+        }
+
+        private object lastReturnedValue;
+        private bool returned = false;
+        public override object VisitReturnStmt([NotNull] MegaScryptParser.ReturnStmtContext context)
+        {
+            if (context.expression() != null)
+                lastReturnedValue = context.expression().Accept(this);
+            else
+                lastReturnedValue = null;
+
+            returned = true;
+            return lastReturnedValue;
+        }
         #endregion
     }
 }
