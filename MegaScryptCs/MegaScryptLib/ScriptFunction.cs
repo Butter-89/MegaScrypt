@@ -17,7 +17,7 @@ namespace MegaScrypt
         private MegaScryptParser.FuncDeclarationContext declContext;
         public MegaScryptParser.FuncDeclarationContext DeclarationContext => declContext;
 
-        public delegate object Invocation(ScriptFunction function, List<object> parameters);
+        public delegate object Invocation(ScriptFunction function, List<object> parameters, InvocationContext ctx);
         Invocation invocation;
 
         public ScriptFunction(Processor processor, Invocation invocation, MegaScryptParser.FuncDeclarationContext declContext)
@@ -51,9 +51,9 @@ namespace MegaScrypt
             return null;
         }
 
-        public object Invoke(List<object> parameters)
+        public object Invoke(List<object> parameters, InvocationContext ctx = null)
         {
-            return invocation.Invoke(this, parameters);
+            return invocation.Invoke(this, parameters, ctx);
         }
     }
 }

@@ -22,7 +22,7 @@ namespace MegaScrypt
             this.name = callback.Method.Name;
         }
 
-        public object Invoke(List<object> parameters)
+        public object Invoke(List<object> parameters, InvocationContext ctx = null)
         {
             object ret = callback.Invoke(parameters);
             return ret;

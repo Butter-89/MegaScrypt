@@ -10,6 +10,6 @@ namespace MegaScrypt
 
         List<string> ParameterNames { get; }
 
-        object Invoke(List<object> parameters);
+        object Invoke(List<object> parameters, InvocationContext ctx = null);
     }
 }

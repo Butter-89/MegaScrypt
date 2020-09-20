@@ -4,18 +4,19 @@ grammar MegaScrypt;
 program: (statement | block)* ;
 
 statement:
-	(declaration | assignment | increment | decrement | instantiation | invocation | returnStmt) ';' | ifStmt 
+	(declaration | assignment | increment | decrement | invocation | returnStmt | compoundIdentifier) ';' | ifStmt 
 ;
 
-declaration:	'var' Id ('=' (expression | compoundIdentifier))?;
-assignment:		Id ('=' | '+=' | '-=' | '*=' | '/=') (compoundIdentifier | expression) ;
+declaration:	'var' Id ('=' (expression | compoundIdentifier | instantiation))?;
+assignment:		Id ('=' | '+=' | '-=' | '*=' | '/=') (compoundIdentifier | expression | instantiation) ;
 funcDeclaration:	'function' '(' varList? ')' '{' statement* '}' ;
-invocation:		Id '(' paramList? ')' ;
+invocation:		compoundIdentifier '(' paramList? ')' ;
 paramList:		expression (',' expression)* ;
 varList:		'var' Id (',' 'var' Id)* ;
-instantiation:	'var' Id '{' keyValuePairs '}' ;
+instantiation:	'{' keyValuePairs '}' ;
 keyValuePairs:	keyValuePair (',' keyValuePair)*;
-keyValuePair:	Id ':' expression ;
+keyValuePair:	Id ':' (expression | instantiation) ;
+
 compoundIdentifier:	Id ('.' Id)* ;
 returnStmt:		'return' expression? ;
 
@@ -28,7 +29,7 @@ increment:		Id '++' | '++' Id;
 decrement:		Id '--' | '--' Id;
 
 expression:
-	Number | Id | 'true' | 'false' | Null | String | invocation | funcDeclaration |
+	Number | Id | 'true' | 'false' | Null | String | invocation | funcDeclaration | compoundIdentifier |
 	'(' expression ')' |
 	'-' expression	|
 	'!' expression	|
@@ -83,7 +84,7 @@ TimesEql:			'*=';
 DivideEql:			'/=';
 
 Id:					('_' | Letter)('_' | Letter | Digit)* ; 
-Number:				Digit+ ('.' Digit*)?;
+Number:				Digit+ ( ('.')? | ('.' Digit*)? );
 String:				'"' (~["\r\n] | '""')* '"';
 
 Whitespace:			[ \t\r\n]+ -> skip;

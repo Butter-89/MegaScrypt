@@ -56,8 +56,8 @@ namespace MegaScryptTests
 		[TestCase("2 <= -10", 2 <= -10)]
 		[TestCase("-2 <= 10", -2 <= 10)]
 		[TestCase("2 <= 2", 2 <= 2)]
-		[TestCase("2. < 3 && 3 >= 0", 2f < 3 && 3 >= 0)]
-		[TestCase("5 > 3 == true || 1. > -1 != false", 5 > 3 == true || 1f > -1 != false)]
+		[TestCase("2. < 3 && 3 >= 0", 2f < 3 && 3 >= 0)]	// X !!
+		[TestCase("5 > 3 == true || 1. > -1 != false", 5 > 3 == true || 1f > -1 != false)]	// X !!
 		public void TestExpressions(string expression, object expected)
 		{
 			try

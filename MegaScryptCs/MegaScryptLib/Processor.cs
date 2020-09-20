@@ -25,6 +25,8 @@ namespace MegaScrypt
             set { target = value; }
         }
 
+        private Object container;
+
         #region Basic
 
         public override object VisitDeclaration([NotNull] MegaScryptParser.DeclarationContext context)
@@ -39,8 +41,35 @@ namespace MegaScrypt
             {
                 value = context.compoundIdentifier().Accept(this);
             }
+            else if (context.instantiation() != null)
+            {
+                Object obj = DeclareStruct(context.instantiation());
+                target.Declare(varName, obj);
+                return base.VisitInstantiation(context.instantiation());
+            }
             target.Declare(varName, value);
             return value;
+        }
+
+        private Object DeclareStruct(MegaScryptParser.InstantiationContext ctx)
+        {
+            Object obj = new Object();
+            MegaScryptParser.KeyValuePairContext[] pairs = ctx.keyValuePairs().keyValuePair();
+            foreach (MegaScryptParser.KeyValuePairContext data in pairs)
+            {
+                string dataName = data.Id().GetText();
+                object dataValue = null;
+                if (data.expression() != null)
+                    dataValue = data.expression().Accept(this);
+                else if (data.instantiation() != null)
+                {
+                    dataValue = DeclareStruct(data.instantiation());
+                }
+
+                obj.Declare(dataName, dataValue);
+            }
+
+            return obj;
         }
 
         public override object VisitBlock([NotNull] MegaScryptParser.BlockContext context)
@@ -101,6 +130,10 @@ namespace MegaScrypt
                 result = context.compoundIdentifier().Accept(this);
                 //return result;
             }
+            else if (context.instantiation() != null)
+            {
+                result = DeclareStruct(context.instantiation());
+            }
             else if (context.expression() != null)
             {
                 object exprValue = context.expression().Accept(this);
@@ -119,6 +152,8 @@ namespace MegaScrypt
                     result = BinaryOperation(varValue, exprValue, MegaScryptLexer.Multiply);
                 else if (context.DivideEql() != null)
                     result = BinaryOperation(varValue, exprValue, MegaScryptLexer.Divide);
+                else if (context.Equals() != null)
+                    result = exprValue;
             }
 
 
@@ -205,21 +240,21 @@ namespace MegaScrypt
             return base.VisitTerminal(node);
         }
 
-        public override object VisitInstantiation([NotNull] MegaScryptParser.InstantiationContext context)
-        {
-            string objName = context.Id().GetText();
-            Object obj = new Object();
-            MegaScryptParser.KeyValuePairContext[] pairs = context.keyValuePairs().keyValuePair();
-            foreach (MegaScryptParser.KeyValuePairContext data in pairs)
-            {
-                string varName = data.Id().GetText();
-                object varValue = data.expression().Accept(this);
-                obj.Declare(varName, varValue);
-            }
+        //public override object VisitInstantiation([NotNull] MegaScryptParser.InstantiationContext context)
+        //{
+        //    string objName = context.Id().GetText();
+        //    Object obj = new Object();
+        //    MegaScryptParser.KeyValuePairContext[] pairs = context.keyValuePairs().keyValuePair();
+        //    foreach (MegaScryptParser.KeyValuePairContext data in pairs)
+        //    {
+        //        string varName = data.Id().GetText();
+        //        object varValue = data.expression().Accept(this);
+        //        obj.Declare(varName, varValue);
+        //    }
 
-            target.Declare(objName, obj);
-            return base.VisitInstantiation(context);
-        }
+        //    target.Declare(objName, obj);
+        //    return base.VisitInstantiation(context);
+        //}
 
         public override object VisitCompoundIdentifier([NotNull] MegaScryptParser.CompoundIdentifierContext context)
         {
@@ -238,10 +273,11 @@ namespace MegaScrypt
                 }
             }
 
+            container = currentObj;
             return currentObj.Get(ids[ids.Length - 1].GetText());
         }
 
-
+        // Pass in an Id and retrieve its value
         protected object GetValue([NotNull] ITerminalNode context)
         {
             string varName = context.GetText();
@@ -291,10 +327,19 @@ namespace MegaScrypt
 
         protected object BinaryOperation(object a, object b, int op)
         {
+            float f_a = 0f;
+            float f_b = 0f;
+            if (a is float && b is int)
+                f_b = Convert.ToSingle(b);
+            else if (a is int && b is float)
+                f_a = Convert.ToSingle(a);
+
             if (a is int && b is int)
             {
                 return IntegerBinaryOperation(a, b, op);
             }
+            else if (a is float && b is float)
+                return FloatBinaryOperation(a, b, op);
             else if (a is bool && b is bool)
                 return BooleanBinaryOperation(a, b, op);
             else if (a is string && b is string)
@@ -374,6 +419,10 @@ namespace MegaScrypt
                 case MegaScryptParser.Minus: return a - b;
                 case MegaScryptParser.Multiply: return a * b;
                 case MegaScryptParser.Divide: return a / b;
+                case MegaScryptParser.Smaller: return a < b;
+                case MegaScryptParser.Greater: return a > b;
+                case MegaScryptParser.SmallerEql: return a <= b;
+                case MegaScryptParser.GreaterEql: return a >= b;
                 case MegaScryptParser.DoubleEquals: return a == b;
                 case MegaScryptParser.NotEquals: return a != b;
             }
@@ -397,11 +446,12 @@ namespace MegaScrypt
             return function;
         }
 
-        public object Invoke(ScriptFunction function, List<object> parameters)
+        public object Invoke(ScriptFunction function, List<object> parameters, InvocationContext ctx)
         {
             // Scope
             Object prevTarget = target;
-            target = new Object(prevTarget);
+            Object parentScope = ctx != null && ctx.Container != null ? ctx.Container : prevTarget;
+            target = new Object(parentScope);
 
             // Declare variables
             if(parameters != null)
@@ -434,7 +484,7 @@ namespace MegaScrypt
 
         public override object VisitInvocation([NotNull] MegaScryptParser.InvocationContext context)
         {
-            object obj = GetValue(context.Id());
+            object obj = context.compoundIdentifier().Accept(this);
             IFunction function = obj as IFunction;
             if(function == null)
             {
@@ -448,6 +498,9 @@ namespace MegaScrypt
             }
             else
                 parameters = new List<object>();
+
+            InvocationContext invCtx = new InvocationContext(container);
+            
 
             object ret = function.Invoke(parameters);
             return ret;
