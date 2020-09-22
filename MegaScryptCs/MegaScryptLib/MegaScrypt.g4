@@ -8,7 +8,7 @@ statement:
 ;
 
 declaration:	'var' Id ('=' (expression | compoundIdentifier | instantiation))?;
-assignment:		Id ('=' | '+=' | '-=' | '*=' | '/=') (compoundIdentifier | expression | instantiation) ;
+assignment:		compoundIdentifier ('=' | '+=' | '-=' | '*=' | '/=') (expression | instantiation) ;
 funcDeclaration:	'function' '(' varList? ')' '{' statement* '}' ;
 invocation:		compoundIdentifier '(' paramList? ')' ;
 paramList:		expression (',' expression)* ;
@@ -25,11 +25,11 @@ block:		'{' statement* '}' | statement;
 elseStmt:	'else' block;
 ifStmt:		'if' '(' expression ')' block ('else if' '(' expression ')' block)* (elseStmt)?;
 
-increment:		Id '++' | '++' Id;
-decrement:		Id '--' | '--' Id;
+increment:		compoundIdentifier '++' | '++' compoundIdentifier;
+decrement:		compoundIdentifier '--' | '--' compoundIdentifier;
 
 expression:
-	Number | Id | 'true' | 'false' | Null | String | invocation | funcDeclaration | compoundIdentifier |
+	Number | Id | 'true' | 'false' | Null | String | invocation | funcDeclaration | compoundIdentifier | increment | decrement |
 	'(' expression ')' |
 	'-' expression	|
 	'!' expression	|

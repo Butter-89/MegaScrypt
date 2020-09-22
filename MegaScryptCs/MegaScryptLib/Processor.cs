@@ -25,8 +25,8 @@ namespace MegaScrypt
             set { target = value; }
         }
 
-        private Object container;
-
+        private Object container; // To temporarilyy store the current Object it's in
+        private string idText;  // To temporarilly store the content of Id
         #region Basic
 
         public override object VisitDeclaration([NotNull] MegaScryptParser.DeclarationContext context)
@@ -123,14 +123,18 @@ namespace MegaScrypt
         public override object VisitAssignment([NotNull] MegaScryptParser.AssignmentContext context)
         {
             object result = null;
-            string varName = context.Id().GetText();
+            string varName = null;    // Todo: switch to adapt CompoundId
+            Object prevTarget = target;
             //string varName = context.id().Accept(this) as string;
             if (context.compoundIdentifier() != null)
             {
                 result = context.compoundIdentifier().Accept(this);
+                varName = idText;
+                target = container;
                 //return result;
             }
-            else if (context.instantiation() != null)
+            
+            if (context.instantiation() != null)
             {
                 result = DeclareStruct(context.instantiation());
             }
@@ -161,12 +165,17 @@ namespace MegaScrypt
                 throw new InvalidOperationException();
 
             target.Set(varName, result);
+            target = prevTarget;
             return result;
         }
 
         public override object VisitIncrement([NotNull] MegaScryptParser.IncrementContext context)
         {
-            string varName = context.Id().GetText();
+            object varValue = context.compoundIdentifier().Accept(this);
+            string varName = idText;
+            Object prevTarget = target;
+            target = container;
+
             if (target.Has(varName))
             {
                 object value = target.Get(varName);
@@ -181,12 +190,16 @@ namespace MegaScrypt
                     target.Set(varName, result);
                 }
             }
+            target = prevTarget;
             return base.VisitIncrement(context);
         }
 
         public override object VisitDecrement([NotNull] MegaScryptParser.DecrementContext context)
         {
-            string varName = context.Id().GetText();
+            object varValue = context.compoundIdentifier().Accept(this);
+            string varName = idText;
+            Object prevTarget = target;
+            target = container;
             if (target.Has(varName))
             {
                 object value = target.Get(varName);
@@ -201,6 +214,7 @@ namespace MegaScrypt
                     target.Set(varName, result);
                 }
             }
+            target = prevTarget;
             return base.VisitDecrement(context);
         }
 
@@ -274,7 +288,8 @@ namespace MegaScrypt
             }
 
             container = currentObj;
-            return currentObj.Get(ids[ids.Length - 1].GetText());
+            idText = ids[ids.Length - 1].GetText();
+            return currentObj.Get(idText);
         }
 
         // Pass in an Id and retrieve its value
@@ -287,6 +302,11 @@ namespace MegaScrypt
 
         public override object VisitExpression([NotNull] MegaScryptParser.ExpressionContext context)
         {
+            if(context.compoundIdentifier() != null)
+            {
+                return context.compoundIdentifier().Accept(this);
+            }
+
             if (context.children.Count == 1)
             {
                 if (context.Id() != null)
@@ -296,6 +316,7 @@ namespace MegaScrypt
                 return result;
             }
 
+            
             MegaScryptParser.ExpressionContext[] exprs = context.expression();
             if (exprs.Length == 1)
             {
