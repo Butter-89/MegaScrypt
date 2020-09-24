@@ -523,7 +523,7 @@ namespace MegaScrypt
             InvocationContext invCtx = new InvocationContext(container);
             
 
-            object ret = function.Invoke(parameters);
+            object ret = function.Invoke(parameters, invCtx);
             return ret;
         }
 

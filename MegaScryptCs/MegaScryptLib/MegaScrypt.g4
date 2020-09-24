@@ -85,7 +85,7 @@ DivideEql:			'/=';
 
 Id:					('_' | Letter)('_' | Letter | Digit)* ; 
 Number:				Digit+ ( ('.')? | ('.' Digit*)? );
-String:				'"' (~["\r\n] | '""')* '"';
+String:				'"' (~[\r\n] | '""')* '"';
 
 Whitespace:			[ \t\r\n]+ -> skip;
 LineComment:		'//' ~('\r' | '\n' )* -> skip;

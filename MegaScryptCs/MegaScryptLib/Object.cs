@@ -21,6 +21,12 @@ namespace MegaScrypt
 
         public void Declare(string varName, object value = null)
         {
+            if(varName == "prototype")
+            {
+                parent = value as Object;
+                return;
+            }
+
             if (variables.ContainsKey(varName))
                 throw new InvalidOperationException($"Variable \"{varName}\" is already declared.");
             variables.Add(varName, value);
@@ -28,6 +34,11 @@ namespace MegaScrypt
 
         public object Get(string varName, bool allowParentChaining = true)
         {
+            if (varName == "prototype")
+            {
+                return parent;
+            }
+
             if (variables.ContainsKey(varName))
             {
                 return variables[varName];
@@ -42,6 +53,11 @@ namespace MegaScrypt
 
         public void Set(string varName, object value, bool allowParentChaining = true)
         {
+            if (varName == "prototype")
+            {
+                parent = value as Object;
+                return;
+            }
             if (variables.ContainsKey(varName))
             {
                 variables[varName] = value;
@@ -59,6 +75,10 @@ namespace MegaScrypt
 
         public bool Has(string varName, bool allowParentChaining = true)
         {
+            if (varName == "prototype")
+            {
+                return parent != null;
+            }
             bool has = variables.ContainsKey(varName);
             if (!has && allowParentChaining && parent != null)
             {
